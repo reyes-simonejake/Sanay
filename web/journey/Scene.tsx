@@ -360,7 +360,27 @@ function SoundCity({ day, layout = "street" }: { day: boolean; layout?: "street"
               // A slow wave of light travelling down the street, like a voice.
               float wave = 0.55 + 0.45 * sin((vWorld.z + vWorld.x) * 0.12 + time * 1.6 + vSeed);
               vec3 wc = mix(warm, cool, step(0.75, hash(cell.yx + vSeed)));
-              c += wc * win * margin * lit * wave * (0.9 + level * 1.6);
+              // About one lit window in ten: someone on a call. They take turns: talking (bars on the
+              // sill, a little nod), then listening while the other side talks.
+              float onCall = lit * step(0.9, hash(cell * 1.31 + vSeed + 4.7));
+              float talk = step(0.5, fract(time * 0.19 + hash(cell + vSeed * 1.7)));
+              c += wc * win * margin * lit * mix(wave, 1.0, onCall) * (0.9 + level * 1.6);
+              // The person, as a silhouette against the light: head, shoulders, phone at the ear.
+              vec2 w = vec2((f.x - 0.22) / 0.56, (f.y - 0.28) / 0.5);
+              float aspect = (size.x * 0.56) / (size.y * 0.5);
+              float nod = sin(time * 7.0 + vSeed) * 0.02 * talk;
+              vec2 q = (w - vec2(0.5, 0.0)) * vec2(aspect, 1.0);
+              float head = 1.0 - smoothstep(0.13, 0.155, length(q - vec2(0.0, 0.6 + nod)));
+              float torso = 1.0 - smoothstep(0.3, 0.33, length(q * vec2(1.0, 1.35)));
+              float phone = step(abs(q.x - 0.15), 0.035) * step(abs(w.y - 0.6 - nod), 0.09);
+              float person = max(max(head, torso), phone) * onCall * win * margin;
+              c = mix(c, body * 0.7, person * 0.88);
+              // The voice: five little bars on the sill, in the voice colour, while they talk.
+              float bx = w.x * 5.0;
+              float bar = step(0.0, bx) * step(bx, 5.0) * step(0.22, fract(bx)) * step(fract(bx), 0.78);
+              float bh = 0.25 + 0.75 * abs(sin(time * 8.0 + floor(bx) * 1.9 + vSeed));
+              float sill = step(0.1, f.y) * step(f.y, 0.1 + 0.15 * bh) * step(f.y, 0.26);
+              c += roof * 1.7 * bar * sill * talk * onCall * margin;
               // A thin rim of light at the top edge of the taller buildings.
               c += roof * smoothstep(vScale.y - 0.12, vScale.y, y) * 0.9 * (1.0 - house);
             }
@@ -378,13 +398,9 @@ function SoundCity({ day, layout = "street" }: { day: boolean; layout?: "street"
   const sc = useMemo(() => new THREE.Vector3(), []);
   useFrame(({ clock }) => {
     // The street rises once you leave the hero; the hero skyline sinks away as you start to scroll.
-    const rise =
-      layout === "street"
-        ? Math.max(0.001, smooth(clamp((journey.at - 0.35) / 0.6)))
-        : Math.max(0.001, 1 - smooth(clamp((journey.at - 0.08) / 0.5)));
+    const rise = layout === "street" ? Math.max(0.001, smooth(clamp((journey.at - 0.35) / 0.6))) : skylineRise();
     // The hero skyline glides sideways, like the view from a moving jeepney, and wraps around.
-    const slide = layout === "skyline" ? clock.elapsedTime * 1.1 : 0;
-    const xAt = (x: number) => (layout === "skyline" ? ((((x + slide + SKYLINE_W / 2) % SKYLINE_W) + SKYLINE_W) % SKYLINE_W) - SKYLINE_W / 2 : x);
+    const xAt = (x: number) => (layout === "skyline" ? skylineX(x, clock.elapsedTime) : x);
     items.forEach((b, i) => {
       const h = b.h * rise;
       m.compose(v.set(xAt(b.x), h / 2, b.z), q, sc.set(b.w, h, b.d));
@@ -421,6 +437,182 @@ function SoundCity({ day, layout = "street" }: { day: boolean; layout?: "street"
     <>
       <instancedMesh ref={mesh} args={[geo, mat, items.length]} frustumCulled={false} />
       <instancedMesh ref={roofs} args={[roofGeo, roofMat, homes.length]} frustumCulled={false} />
+      {layout === "skyline" && <CallLines lots={items} day={day} />}
+    </>
+  );
+}
+
+/** How far the hero skyline has risen (it sinks away as you start to scroll). */
+const skylineRise = () => Math.max(0.001, 1 - smooth(clamp((journey.at - 0.08) / 0.5)));
+/** A skyline lot's x after gliding for `t` seconds, wrapped so the street never ends. */
+const skylineX = (x: number, t: number) => {
+  const s = x + t * 1.1 + SKYLINE_W / 2;
+  return (((s % SKYLINE_W) + SKYLINE_W) % SKYLINE_W) - SKYLINE_W / 2;
+};
+
+const ARC_DOTS = 40;
+
+/**
+ * Calls across the hero skyline: a few pairs of windows in different homes and buildings, joined by a
+ * faint dotted arc. A pulse of light runs along it from one window to the other, then the answer comes
+ * back: a conversation crossing the city.
+ */
+function CallLines({ lots, day }: { lots: Lot[]; day: boolean }) {
+  const { gl } = useThree();
+  const pairs = useMemo(() => {
+    let n = 11;
+    const r = () => {
+      n = (n * 16807) % 2147483647;
+      return n / 2147483647;
+    };
+    const out: { a: Lot; b: Lot; lift: number; period: number; offset: number }[] = [];
+    const used = new Set<number>();
+    for (let tries = 0; tries < 400 && out.length < 8; tries++) {
+      const i = Math.floor(r() * lots.length);
+      const j = Math.floor(r() * lots.length);
+      const dx = Math.abs(lots[j]!.x - lots[i]!.x);
+      if (i === j || used.has(i) || used.has(j) || dx < 7 || dx > 22) continue;
+      used.add(i).add(j);
+      out.push({ a: lots[i]!, b: lots[j]!, lift: 1.8 + r() * 2.4, period: 3.6 + r() * 2.2, offset: r() * 10 });
+    }
+    return out;
+  }, [lots]);
+  const geo = useMemo(() => {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute("position", new THREE.BufferAttribute(new Float32Array(pairs.length * ARC_DOTS * 3), 3));
+    g.setAttribute("aGlow", new THREE.BufferAttribute(new Float32Array(pairs.length * ARC_DOTS), 1));
+    return g;
+  }, [pairs]);
+  const mat = useMemo(
+    () =>
+      new THREE.ShaderMaterial({
+        transparent: true,
+        depthWrite: false,
+        uniforms: { colour: { value: new THREE.Color() }, scale: { value: 1 } },
+        vertexShader: /* glsl */ `
+          attribute float aGlow; uniform float scale; varying float vGlow;
+          void main() {
+            vGlow = aGlow;
+            vec4 mv = modelViewMatrix * vec4(position, 1.0);
+            gl_PointSize = (0.08 + aGlow * 0.16) * scale / -mv.z;
+            gl_Position = projectionMatrix * mv;
+          }`,
+        fragmentShader: /* glsl */ `
+          uniform vec3 colour; varying float vGlow;
+          void main() {
+            float d = length(gl_PointCoord - 0.5);
+            gl_FragColor = vec4(colour * (1.0 + vGlow * 1.6), smoothstep(0.5, 0.15, d) * min(vGlow, 1.0));
+          }`,
+      }),
+    [],
+  );
+  useEffect(() => () => geo.dispose(), [geo]);
+  // The two people: a window glowing in the voice colour at each end, with sound rings spreading from
+  // whoever is talking. Readable from the hero, where a window is only a few pixels tall.
+  const endGeo = useMemo(() => {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute("position", new THREE.BufferAttribute(new Float32Array(pairs.length * 2 * 3), 3));
+    g.setAttribute("aRing", new THREE.BufferAttribute(new Float32Array(pairs.length * 2), 1));
+    g.setAttribute("aTalk", new THREE.BufferAttribute(new Float32Array(pairs.length * 2), 1));
+    g.setAttribute("aShow", new THREE.BufferAttribute(new Float32Array(pairs.length * 2), 1));
+    return g;
+  }, [pairs]);
+  useEffect(() => () => endGeo.dispose(), [endGeo]);
+  const endMat = useMemo(
+    () =>
+      new THREE.ShaderMaterial({
+        transparent: true,
+        depthWrite: false,
+        uniforms: { colour: { value: new THREE.Color() }, scale: { value: 1 } },
+        vertexShader: /* glsl */ `
+          attribute float aRing; attribute float aTalk; attribute float aShow; uniform float scale;
+          varying float vRing; varying float vTalk; varying float vShow;
+          void main() {
+            vRing = aRing; vTalk = aTalk; vShow = aShow;
+            vec4 mv = modelViewMatrix * vec4(position, 1.0);
+            gl_PointSize = 1.5 * scale / -mv.z;
+            gl_Position = projectionMatrix * mv;
+          }`,
+        fragmentShader: /* glsl */ `
+          uniform vec3 colour; varying float vRing; varying float vTalk; varying float vShow;
+          void main() {
+            vec2 p = gl_PointCoord - 0.5;
+            float d = length(p);
+            // The window itself: a small lit square in the voice colour.
+            float win = step(max(abs(p.x), abs(p.y)), 0.07);
+            // Two sound rings spreading out while this person talks.
+            float r1 = fract(vRing), r2 = fract(vRing + 0.5);
+            float ring = (1.0 - smoothstep(0.0, 0.025, abs(d - (0.08 + r1 * 0.4)))) * (1.0 - r1)
+                       + (1.0 - smoothstep(0.0, 0.025, abs(d - (0.08 + r2 * 0.4)))) * (1.0 - r2);
+            float a = (win * (0.55 + 0.45 * vTalk) + ring * vTalk * 0.8) * vShow;
+            if (a < 0.01) discard;
+            gl_FragColor = vec4(colour * (1.2 + win * vTalk), a);
+          }`,
+      }),
+    [],
+  );
+  const A = useMemo(() => new THREE.Vector3(), []);
+  const B = useMemo(() => new THREE.Vector3(), []);
+  useFrame(({ clock }) => {
+    const t = clock.elapsedTime;
+    const rise = skylineRise();
+    const pos = geo.attributes.position as THREE.BufferAttribute;
+    const glow = geo.attributes.aGlow as THREE.BufferAttribute;
+    pairs.forEach((p, k) => {
+      // Each end sits on a window on the front of its home or building.
+      A.set(skylineX(p.a.x, t), p.a.h * 0.6 * rise, p.a.z + p.a.d / 2 + 0.05);
+      B.set(skylineX(p.b.x, t), p.b.h * 0.6 * rise, p.b.z + p.b.d / 2 + 0.05);
+      // When one end wraps around the strip, the pair is briefly apart: hide it rather than span the city.
+      const together = Math.abs(A.x - B.x) < 26 ? 1 : 0;
+      const phase = t / p.period + p.offset;
+      const s = phase % 1;
+      const back = Math.floor(phase) % 2 === 1; // the answer comes back the other way
+      const head = smooth(clamp(s / 0.7));
+      const at = back ? 1 - head : head;
+      const travelling = s < 0.78 ? 1 : 0;
+      // Both ends: the speaker sends rings while the pulse travels; the listener glows as it arrives.
+      const show = together * (rise > 0.05 ? rise : 0);
+      const ends = endGeo.attributes;
+      [A, B].forEach((P, e) => {
+        const speaking = (e === 0) !== back;
+        (ends.position as THREE.BufferAttribute).setXYZ(k * 2 + e, P.x, P.y, P.z);
+        (ends.aRing as THREE.BufferAttribute).setX(k * 2 + e, t * 0.9 + p.offset);
+        const talk = speaking ? travelling * (1 - smooth(clamp((s - 0.6) / 0.15))) : s > 0.65 && s < 0.95 ? 0.6 : 0;
+        (ends.aTalk as THREE.BufferAttribute).setX(k * 2 + e, talk);
+        (ends.aShow as THREE.BufferAttribute).setX(k * 2 + e, show);
+      });
+      for (let i = 0; i < ARC_DOTS; i++) {
+        const u = i / (ARC_DOTS - 1);
+        const idx = k * ARC_DOTS + i;
+        const x = A.x + (B.x - A.x) * u;
+        const z = A.z + (B.z - A.z) * u;
+        const y = A.y + (B.y - A.y) * u + p.lift * 4 * u * (1 - u) * rise;
+        pos.setXYZ(idx, x, y, z);
+        const pulse = travelling * Math.exp(-((u - at) ** 2) / 0.003);
+        // The receiving window lights up as the voice arrives.
+        const arrive = s > 0.6 && s < 0.95 ? Math.exp(-(((back ? u : 1 - u)) ** 2) / 0.002) * 0.8 : 0;
+        glow.setX(idx, (0.32 + pulse * 1.5 + arrive) * show);
+      }
+    });
+    pos.needsUpdate = true;
+    glow.needsUpdate = true;
+    for (const a of Object.values(endGeo.attributes)) a.needsUpdate = true;
+    mat.uniforms.colour!.value.set(journey.voice === "natural" ? (day ? "#4b55e0" : "#8a95ff") : voiceColour());
+    const scale = gl.domElement.height / 0.9326; // pixels per unit at 1 m, for fov 50
+    const blending = day ? THREE.NormalBlending : THREE.AdditiveBlending;
+    for (const mm of [mat, endMat]) {
+      mm.uniforms.colour!.value.copy(mat.uniforms.colour!.value);
+      mm.uniforms.scale!.value = scale;
+      if (mm.blending !== blending) {
+        mm.blending = blending;
+        mm.needsUpdate = true;
+      }
+    }
+  });
+  return (
+    <>
+      <points geometry={geo} material={mat} frustumCulled={false} />
+      <points geometry={endGeo} material={endMat} frustumCulled={false} />
     </>
   );
 }
