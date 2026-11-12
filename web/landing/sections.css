@@ -1,0 +1,376 @@
+/* Sections after the journey. Tokens come from src/index.css, so light and dark both work. */
+.land-section {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+/* Soft light in the brand and voice tints: a night glow in dark, a pastel morning (after Imagica) in light. */
+.land-glow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(40% 50% at 12% 20%, color-mix(in oklab, var(--brand) 16%, transparent), transparent 70%),
+    radial-gradient(35% 45% at 88% 75%, color-mix(in oklab, var(--voice-feminine) 12%, transparent), transparent 70%);
+}
+:root[data-theme="light"] .land-glow::before {
+  background:
+    radial-gradient(45% 55% at 10% 15%, color-mix(in oklab, var(--brand) 14%, transparent), transparent 70%),
+    radial-gradient(40% 50% at 90% 80%, color-mix(in oklab, var(--voice-feminine) 12%, transparent), transparent 70%),
+    radial-gradient(30% 40% at 60% 10%, color-mix(in oklab, var(--ember) 10%, transparent), transparent 70%);
+}
+.land-card {
+  padding: 22px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  box-shadow: 0 24px 50px -30px rgb(10 14 40 / 0.35);
+}
+
+/* ---- Call picker -------------------------------------------------------- */
+.picker-prompt {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 6px;
+  padding: 18px 20px;
+  border-radius: 18px;
+  border: 1px solid var(--glass-edge);
+  background: var(--card);
+  font-size: clamp(18px, 1.8vw, 22px);
+  box-shadow: 0 20px 50px -30px rgb(10 14 40 / 0.35);
+}
+.picker-typed {
+  display: inline-block;
+  animation: picker-type 0.7s steps(28) both;
+}
+@keyframes picker-type {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+.picker-caret {
+  width: 2px;
+  height: 1.1em;
+  background: var(--brand);
+  animation: picker-blink 1s steps(1) infinite;
+}
+@keyframes picker-blink {
+  50% {
+    opacity: 0;
+  }
+}
+.chip {
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid var(--glass-edge);
+  background: var(--card);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--foreground);
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.15s ease,
+    border-color 0.2s ease;
+}
+.chip:hover {
+  border-color: color-mix(in oklab, var(--brand) 50%, var(--glass-edge));
+}
+.chip:active {
+  transform: scale(0.97);
+}
+.chip[data-on] {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-color: transparent;
+}
+.chip:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+.picker-card {
+  padding: 28px;
+  border-radius: 28px;
+  border: 1px solid var(--glass-edge);
+  background:
+    radial-gradient(90% 60% at 50% 0%, color-mix(in oklab, var(--light) 16%, transparent), transparent 70%),
+    var(--card);
+  box-shadow: 0 50px 100px -50px color-mix(in oklab, var(--light) 70%, transparent);
+}
+.picker-orb {
+  width: 56px;
+  height: 56px;
+  flex: none;
+  border-radius: 999px;
+  background: radial-gradient(circle at 50% 70%, #fff 0%, var(--light) 52%, color-mix(in oklab, var(--light) 35%, black) 100%);
+  box-shadow: 0 0 26px -2px var(--light);
+  animation: picker-breathe 2.4s ease-in-out infinite alternate;
+}
+@keyframes picker-breathe {
+  to {
+    transform: scale(1.07);
+    box-shadow: 0 0 40px 0 var(--light);
+  }
+}
+.picker-quote {
+  margin-top: 26px;
+  font-size: clamp(22px, 2.2vw, 28px);
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  animation: picker-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes picker-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+    filter: blur(4px);
+  }
+}
+.picker-wave {
+  margin-top: 22px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 36px;
+}
+.picker-wave i {
+  flex: 1;
+  border-radius: 99px;
+  background: color-mix(in oklab, var(--light) 75%, var(--foreground));
+  animation: picker-bar 1s ease-in-out infinite alternate;
+}
+@keyframes picker-bar {
+  from {
+    transform: scaleY(0.35);
+  }
+}
+
+/* ---- Noise tiles (after ArgusVPN's feature tiles) ------------------------ */
+.noise-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 176px;
+  padding: 18px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--muted-foreground);
+  transition:
+    border-color 0.3s ease,
+    transform 0.3s ease,
+    box-shadow 0.3s ease,
+    color 0.3s ease;
+}
+.noise-tile > span:first-of-type {
+  color: var(--foreground);
+}
+.noise-tile[data-on] {
+  transform: translateY(-3px);
+  border-color: color-mix(in oklab, var(--ok) 45%, var(--border));
+  box-shadow: 0 24px 50px -30px color-mix(in oklab, var(--ok) 60%, transparent);
+  color: var(--foreground);
+}
+.noise-bars {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 30px;
+}
+.noise-bars i {
+  flex: 1;
+  height: var(--h);
+  border-radius: 99px;
+  background: var(--warn);
+  opacity: 0.75;
+  transform-origin: center;
+  transition:
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.5s ease;
+}
+.noise-tile[data-on] .noise-bars i {
+  transform: scaleY(0.12);
+  background: var(--ok);
+}
+.noise-done {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ok);
+  opacity: 0;
+  transform: translateY(-4px);
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
+}
+.noise-tile[data-on] .noise-done {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---- 3D stages ----------------------------------------------------------- */
+.privacy-stage,
+.world-stage {
+  position: relative;
+  width: 100%;
+  max-width: 560px;
+  aspect-ratio: 1;
+  margin-inline: auto;
+}
+.privacy-stage::before,
+.world-stage::before {
+  content: "";
+  position: absolute;
+  inset: 12%;
+  z-index: -1;
+  border-radius: 999px;
+  background: radial-gradient(closest-side, color-mix(in oklab, var(--brand) 22%, transparent), transparent);
+  filter: blur(20px);
+}
+.globe-label {
+  display: inline-block;
+  white-space: nowrap;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--pill-edge);
+  background: var(--pill-bg);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 500;
+  transform: translateY(-14px);
+  transition: opacity 0.2s linear;
+}
+.globe-home {
+  background: #fff;
+  color: #06070c;
+  font-weight: 600;
+}
+
+/* ---- Closing call to action: a phone on a glowing grid floor (after ArgusVPN) ---- */
+.final-stage {
+  position: relative;
+  height: 520px;
+  margin-top: 40px;
+}
+.final-floor {
+  position: absolute;
+  left: -20%;
+  right: -20%;
+  bottom: -30%;
+  height: 90%;
+  background-image:
+    linear-gradient(color-mix(in oklab, var(--brand) 55%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in oklab, var(--brand) 55%, transparent) 1px, transparent 1px);
+  background-size: 64px 64px;
+  transform: perspective(700px) rotateX(64deg);
+  transform-origin: 50% 0;
+  mask-image: radial-gradient(60% 70% at 50% 20%, #000 0%, transparent 75%);
+  animation: final-floor 5s linear infinite;
+}
+@keyframes final-floor {
+  to {
+    background-position: 0 64px;
+  }
+}
+.final-stage::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 40px;
+  width: 640px;
+  max-width: 100%;
+  height: 260px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: radial-gradient(closest-side, color-mix(in oklab, var(--brand) 45%, transparent), transparent);
+  filter: blur(30px);
+}
+.final-phone {
+  position: absolute;
+  left: 50%;
+  bottom: 90px;
+  width: 230px;
+  height: 420px;
+  margin-left: -115px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 70px;
+  border-radius: 40px;
+  border: 1px solid var(--glass-edge);
+  background:
+    radial-gradient(80% 50% at 50% 30%, color-mix(in oklab, var(--light) 22%, transparent), transparent 70%),
+    var(--card);
+  box-shadow:
+    0 0 0 6px color-mix(in oklab, var(--foreground) 8%, transparent),
+    0 60px 120px -40px color-mix(in oklab, var(--brand) 70%, transparent);
+  animation: final-float 6s ease-in-out infinite alternate;
+}
+@keyframes final-float {
+  to {
+    transform: translateY(-12px) rotate(-1.5deg);
+  }
+}
+.final-notch {
+  position: absolute;
+  top: 12px;
+  width: 70px;
+  height: 18px;
+  border-radius: 99px;
+  background: color-mix(in oklab, var(--foreground) 12%, transparent);
+}
+.final-orb {
+  width: 110px;
+  height: 110px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 50% 70%, #fff 0%, var(--light) 50%, color-mix(in oklab, var(--light) 35%, black) 100%);
+  box-shadow: 0 0 50px -4px var(--light);
+  animation: picker-breathe 2.4s ease-in-out infinite alternate;
+}
+.final-name {
+  margin-top: 28px;
+  font-size: 22px;
+  font-weight: 600;
+}
+.final-wave {
+  margin-top: 26px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 30px;
+}
+.final-wave i {
+  width: 3px;
+  height: 100%;
+  border-radius: 99px;
+  background: var(--light);
+  animation: picker-bar 0.9s ease-in-out infinite alternate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .picker-typed,
+  .picker-caret,
+  .picker-orb,
+  .picker-quote,
+  .picker-wave i,
+  .final-floor,
+  .final-phone,
+  .final-orb,
+  .final-wave i {
+    animation: none !important;
+  }
+}

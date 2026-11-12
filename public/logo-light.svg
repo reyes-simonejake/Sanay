@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Sanay "Voice Line": a clear voice wave passing through the light. Tile follows light/dark. -->
+  <defs>
+    <radialGradient id="body" cx="50%" cy="72%" r="68%">
+      <stop offset="0" stop-color="#b9c4ff"/>
+      <stop offset="0.55" stop-color="#5b5fe8"/>
+      <stop offset="1" stop-color="#16124f"/>
+    </radialGradient>
+  </defs>
+  <rect fill="#e8eaff" width="512" height="512" rx="116"/>
+  <circle cx="256" cy="256" r="156" fill="url(#body)"/>
+  <path d="M86 256 C 146 256, 166 176, 216 176 S 286 336, 336 336 S 386 256, 426 256" fill="none" stroke="#ffffff" stroke-width="30" stroke-linecap="round"/>
+</svg>

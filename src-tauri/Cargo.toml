@@ -1,0 +1,50 @@
+[package]
+name = "sanay"
+version = "0.1.0"
+description = "Sanay — free, offline voice clarity for online interviews"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+
+[lib]
+name = "sanay_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[features]
+default = []
+# DeepFilterNet3 denoiser (Phase 1, week 3). RNNoise is the default until then.
+deepfilter = []
+
+[build-dependencies]
+cc = "1.11.1"
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+anyhow = "1.0.104"
+cpal = "0.18.2"
+env_logger = "0.11.11"
+log = "0.4.35"
+nnnoiseless = "0.5.2"
+realfft = "3.5.1"
+parking_lot = "0.13.0"
+ringbuf = "0.6.0"
+rubato = "5.0.1"
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.154"
+tauri = { version = "2", features = ["tray-icon"] }
+tauri-plugin-autostart = "2"
+tokio = { version = "1.54.1", features = ["time"] }
+
+[profile.release]
+lto = true
+codegen-units = 1
+opt-level = 3
+panic = "abort"
+strip = true
+
+# Keep DSP fast even in debug builds so `tauri dev` doesn't drop audio.
+[profile.dev.package."*"]
+opt-level = 3
+
+# The audio engine (incl. echo cancellation) needs optimised code to keep up in real time.
+[profile.dev.package.sanay]
+opt-level = 3

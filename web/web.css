@@ -1,0 +1,10 @@
+@import "../src/index.css";
+@source "../src";
+@source "../web";
+
+.spectrum {
+  --spec-grid: color-mix(in oklab, var(--foreground) 10%, transparent);
+  --spec-raw: color-mix(in oklab, var(--muted-foreground) 45%, transparent);
+  --spec-clean: var(--brand);
+  --spec-text: var(--muted-foreground);
+}

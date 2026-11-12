@@ -1,0 +1,679 @@
+/* The scroll journey. Every colour comes from the theme tokens in src/index.css (DESIGN.md, "Luminous Voice"),
+   so it works in light and dark. The only saturated colour is the voice light (--light). */
+
+.journey {
+  color: var(--foreground);
+  background: var(--background);
+}
+
+/* Fallback world (no WebGL or reduced motion), also shown while the 3D loads. */
+.journey-backdrop {
+  background:
+    radial-gradient(120% 60% at 50% 100%, color-mix(in oklab, var(--brand) 32%, transparent) 0%, transparent 62%),
+    var(--background);
+}
+.journey[data-chapter="4"] .journey-backdrop,
+.journey[data-chapter="5"] .journey-backdrop {
+  background:
+    radial-gradient(120% 60% at 50% 100%, color-mix(in oklab, var(--ember) 40%, transparent) 0%, transparent 62%),
+    var(--background);
+}
+
+/* ---- Chapters ----------------------------------------------------------- */
+.chapter-inner {
+  grid-template-columns: minmax(0, 1fr);
+}
+@media (min-width: 1024px) {
+  .chapter[data-layout="split"] .chapter-inner {
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  }
+}
+.chapter[data-layout="start"] .chapter-copy {
+  max-width: 38rem;
+}
+.chapter[data-layout="low"] .chapter-inner {
+  align-items: end;
+  padding-bottom: 12vh;
+  text-align: center;
+  justify-items: center;
+}
+.chapter[data-layout="center"] .chapter-inner {
+  text-align: center;
+  justify-items: center;
+}
+.chapter[data-layout="low"] .chapter-copy,
+.chapter[data-layout="center"] .chapter-copy {
+  max-width: 44rem;
+}
+
+/* Readability: the copy sits on a soft pool of the page colour, so it reads over any part of the world. */
+.chapter-copy {
+  position: relative;
+  isolation: isolate;
+  opacity: 0;
+  transform: translateY(28px);
+  filter: blur(6px);
+  transition:
+    opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.9s ease;
+}
+.chapter-copy::before {
+  content: "";
+  position: absolute;
+  inset: -56px -72px;
+  z-index: -1;
+  border-radius: 48px;
+  background: radial-gradient(closest-side, color-mix(in oklab, var(--background) 82%, transparent) 55%, transparent);
+  filter: blur(10px);
+  pointer-events: none;
+}
+.chapter[data-on] .chapter-copy {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+/* Label: Mona Sans 13px, sentence case (DESIGN.md "Label"); the number is a real sequence. */
+.chapter-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+.chapter-kicker-line {
+  width: 28px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.6;
+}
+.chapter-title {
+  margin-top: 14px;
+  font-size: clamp(2.3rem, 4.6vw, 4.1rem);
+  line-height: 0.98;
+  font-weight: 650;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+.chapter[data-layout="start"] .chapter-title {
+  font-size: clamp(2.8rem, 6vw, 5.4rem);
+}
+.chapter[data-layout="center"] .chapter-title {
+  font-size: clamp(3.2rem, 8vw, 7rem);
+}
+.chapter-body {
+  margin-top: 20px;
+  max-width: 34rem;
+  font-size: 18px;
+  line-height: 1.6;
+  color: color-mix(in oklab, var(--foreground) 80%, var(--background));
+  text-wrap: pretty;
+}
+.chapter[data-layout="low"] .chapter-body,
+.chapter[data-layout="center"] .chapter-body {
+  margin-inline: auto;
+}
+.chapter[data-layout="low"] .chapter-kicker,
+.chapter[data-layout="center"] .chapter-kicker {
+  justify-content: center;
+}
+
+/* Product screens float in the world, turned slightly toward the copy. */
+.chapter-panel {
+  display: flex;
+  justify-content: center;
+  perspective: 1600px;
+}
+.chapter-panel > * {
+  opacity: 0;
+  transform: translate3d(80px, 30px, -160px) rotateY(-24deg) rotateX(8deg);
+  transition:
+    opacity 1s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.chapter[data-on] .chapter-panel > * {
+  opacity: 1;
+  transform: rotateY(-10deg) rotateX(3deg);
+}
+.chapter[data-on] .chapter-panel > *:hover {
+  transform: rotateY(-4deg) rotateX(1deg) translateY(-4px);
+}
+@media (max-width: 1023px) {
+  .chapter[data-layout="split"] .chapter-inner {
+    align-content: center;
+  }
+  .chapter-panel {
+    transform: scale(0.82);
+  }
+}
+
+.panel {
+  border-radius: 24px;
+  border: 1px solid var(--glass-edge);
+  background: color-mix(in oklab, var(--card) 86%, transparent);
+  color: var(--card-foreground);
+  backdrop-filter: blur(18px);
+  box-shadow:
+    0 1px 0 0 color-mix(in oklab, var(--foreground) 6%, transparent) inset,
+    0 50px 100px -40px rgb(0 0 0 / 0.55);
+}
+
+/* ---- Buttons: DESIGN.md "White Button Rule": white on night, ink on paper ---- */
+.journey-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 52px;
+  padding: 0 24px;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-size: 15px;
+  font-weight: 600;
+  box-shadow: 0 12px 40px -14px color-mix(in oklab, var(--light, var(--brand)) 70%, transparent);
+  transition:
+    transform 0.15s ease,
+    opacity 0.2s ease;
+}
+.journey-btn:hover {
+  transform: translateY(-1px);
+  opacity: 0.92;
+}
+.journey-btn:active {
+  transform: scale(0.97);
+}
+.journey-btn:disabled {
+  opacity: 0.6;
+}
+.journey-btn:focus-visible,
+.voice-rail button:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+}
+.journey-btn-ghost {
+  background: var(--glass);
+  color: var(--foreground);
+  border: 1px solid var(--glass-edge);
+  backdrop-filter: blur(12px);
+  box-shadow: none;
+}
+
+/* ---- Voice rail: Sanay's floating pill on its side, one level bar per chapter ---- */
+.voice-rail {
+  position: fixed;
+  left: 20px;
+  top: 50%;
+  z-index: 25;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 8px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--pill-edge);
+  background: var(--pill-bg);
+  box-shadow: 0 16px 34px -14px rgb(0 0 0 / 0.6);
+  transform: translate(-12px, -50%);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.45s ease,
+    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.voice-rail.is-on {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(0, -50%);
+}
+.voice-rail-orb {
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 50% 72%, #fff 0%, var(--light) 50%, color-mix(in oklab, var(--light) 35%, black) 100%);
+  box-shadow: 0 0 14px -1px var(--light);
+}
+.voice-rail ol {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.voice-rail button {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 22px;
+  border-radius: 8px;
+}
+.vr-bar {
+  position: relative;
+  display: block;
+  width: 12px;
+  height: 3px;
+  border-radius: 99px;
+  overflow: hidden;
+  background: rgb(255 255 255 / 0.26);
+  transition:
+    width 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.3s ease,
+    background-color 0.3s ease;
+}
+.voice-rail button[data-done] .vr-bar {
+  background: rgb(255 255 255 / 0.55);
+}
+.voice-rail button:hover .vr-bar {
+  width: 18px;
+  background: rgb(255 255 255 / 0.8);
+}
+.voice-rail button[aria-current] .vr-bar {
+  width: 24px;
+  height: 4px;
+  background: rgb(255 255 255 / 0.22);
+}
+.vr-fill {
+  position: absolute;
+  inset: 0;
+  width: 0;
+  border-radius: inherit;
+  background: var(--light);
+  box-shadow: 0 0 8px var(--light);
+}
+.voice-rail button[aria-current] .vr-fill {
+  width: calc(var(--fill, 0.5) * 100%);
+}
+.voice-rail button[data-done] .vr-fill {
+  width: 0;
+}
+/* The chapter name, in a small pill that comes out of the rail. */
+.vr-tip {
+  position: absolute;
+  left: calc(100% + 14px);
+  top: 50%;
+  white-space: nowrap;
+  padding: 5px 11px;
+  border-radius: 999px;
+  border: 1px solid var(--pill-edge);
+  background: var(--pill-bg);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 0;
+  transform: translate(-6px, -50%);
+  pointer-events: none;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+.voice-rail button:hover .vr-tip,
+.voice-rail button:focus-visible .vr-tip {
+  opacity: 1;
+  transform: translate(0, -50%);
+}
+@media (max-width: 767px) {
+  .voice-rail {
+    display: none;
+  }
+}
+
+/* ---- Scroll hint --------------------------------------------------------- */
+.journey-hint {
+  position: absolute;
+  left: 50%;
+  /* In the clear sky between the buttons and the skyline. */
+  bottom: 34vh;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+.journey-hint::after {
+  content: "";
+  width: 1px;
+  height: 30px;
+  background: linear-gradient(currentColor, transparent);
+  transform-origin: top;
+  animation: journey-hint 1.8s ease-in-out infinite;
+}
+@keyframes journey-hint {
+  0% {
+    transform: scaleY(0);
+    opacity: 1;
+  }
+  70% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleY(1);
+    opacity: 0;
+  }
+}
+
+/* ---- Score panel replay -------------------------------------------------- */
+.replay-wave i {
+  display: block;
+  flex: 1;
+  border-radius: 2px;
+  background: color-mix(in oklab, var(--foreground) 28%, transparent);
+}
+.replay-wave i.hot {
+  background: var(--brand);
+}
+
+/* ---- Real call panel ----------------------------------------------------- */
+.meet {
+  position: relative;
+}
+.meet-tile {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 4 / 3;
+  border-radius: 14px;
+  background: var(--muted);
+  overflow: hidden;
+}
+.meet-avatar {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--foreground) 12%, transparent);
+  font-weight: 600;
+  font-size: 18px;
+}
+.meet-name {
+  position: absolute;
+  left: 10px;
+  bottom: 8px;
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+.meet-noise,
+.meet-clean {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 99px;
+  background: var(--card);
+}
+.meet-noise {
+  color: var(--warn);
+  animation: meet-noise 3.6s ease-in-out infinite;
+}
+.meet-clean {
+  color: var(--ok);
+  animation: meet-clean 3.6s ease-in-out infinite;
+}
+@keyframes meet-noise {
+  0%,
+  40% {
+    opacity: 1;
+  }
+  55%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes meet-clean {
+  0%,
+  45% {
+    opacity: 0;
+  }
+  60%,
+  100% {
+    opacity: 1;
+  }
+}
+/* Sanay's floating pill: dark in both themes, as in the app (DESIGN.md "Pill Ground"). */
+.meet-pill {
+  position: absolute;
+  right: 22px;
+  bottom: -18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 14px 0 6px;
+  border-radius: 999px;
+  border: 1px solid var(--pill-edge);
+  background: var(--pill-bg);
+  font-size: 13px;
+  color: #fff;
+  box-shadow: 0 14px 30px -10px rgb(0 0 0 / 0.6);
+}
+.meet-pill-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1.5px solid rgb(255 255 255 / 0.3);
+  animation: meet-dot 3.6s ease-in-out infinite;
+}
+@keyframes meet-dot {
+  0%,
+  8% {
+    background: transparent;
+    box-shadow: none;
+    border-color: rgb(255 255 255 / 0.3);
+  }
+  14%,
+  100% {
+    background: radial-gradient(circle at 50% 72%, #fff 0%, var(--light) 50%, color-mix(in oklab, var(--light) 35%, black) 100%);
+    box-shadow: 0 0 16px -1px var(--light);
+    border-color: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chapter-copy,
+  .chapter-panel > *,
+  .voice-rail {
+    transition: none;
+    filter: none;
+  }
+  .journey-hint::after,
+  .meet-noise,
+  .meet-clean,
+  .meet-pill-dot {
+    animation: none !important;
+  }
+  .meet-noise {
+    opacity: 0;
+  }
+  .meet-clean {
+    opacity: 1;
+  }
+  .meet-pill-dot {
+    background: radial-gradient(circle at 50% 72%, #fff 0%, var(--light) 50%, #111 100%);
+  }
+}
+
+/* ---- Hero (after ArgusVPN): SANAY set wide across the eclipse, the promise centred below ---- */
+.chapter[data-layout="hero"] {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding-bottom: 13vh;
+}
+.hero-wordmark {
+  position: absolute;
+  inset-inline: 0;
+  top: 25vh;
+  display: flex;
+  justify-content: space-between;
+  padding-inline: clamp(20px, 8vw, 140px);
+  font-size: clamp(3.5rem, 9vw, 8.5rem);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0;
+  color: var(--foreground);
+  opacity: 0.92;
+  text-shadow: 0 0 40px color-mix(in oklab, var(--brand) 55%, transparent);
+  transition: opacity 0.8s ease, transform 1s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.chapter[data-layout="hero"]:not([data-on]) .hero-wordmark {
+  opacity: 0;
+  transform: translateY(-30px);
+}
+.hero-copy {
+  max-width: 46rem;
+}
+.hero-eyebrow {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--muted-foreground);
+}
+.hero-title {
+  margin-top: 12px;
+  font-size: clamp(2.2rem, 4.2vw, 3.6rem);
+  line-height: 1.02;
+  font-weight: 650;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+.hero-points {
+  margin-top: 22px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 18px;
+  font-size: 13px;
+  color: var(--muted-foreground);
+}
+.hero-points li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.hero-points svg {
+  color: var(--ok);
+}
+
+/* ---- How it works (after Imagica): pinned list + screen ---------------- */
+.steps {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.6s ease, visibility 0s linear 0.6s;
+}
+.steps[data-on] {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.6s ease;
+}
+.steps-copy {
+  position: relative;
+  isolation: isolate;
+  max-width: 34rem;
+}
+.steps-copy::before {
+  content: "";
+  position: absolute;
+  inset: -48px -60px;
+  z-index: -1;
+  border-radius: 48px;
+  background: radial-gradient(closest-side, color-mix(in oklab, var(--background) 80%, transparent) 55%, transparent);
+  filter: blur(10px);
+}
+.step {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 20px;
+  text-align: left;
+  border: 1px solid transparent;
+  transition: background-color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+}
+.step:hover {
+  background: color-mix(in oklab, var(--foreground) 4%, transparent);
+}
+.step[data-on] {
+  background: color-mix(in oklab, var(--card) 88%, transparent);
+  border-color: var(--glass-edge);
+  box-shadow: 0 24px 60px -30px rgb(0 0 0 / 0.45);
+  backdrop-filter: blur(14px);
+}
+.step-num {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  border: 1px solid var(--glass-edge);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+.step[data-on] .step-num {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-color: transparent;
+}
+.step-title {
+  display: block;
+  font-size: clamp(1.25rem, 2vw, 1.6rem);
+  line-height: 1.15;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: color-mix(in oklab, var(--foreground) 55%, var(--background));
+  transition: color 0.3s ease;
+}
+.step[data-on] .step-title {
+  color: var(--foreground);
+}
+.step-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  overflow: hidden;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--muted-foreground);
+  transition: grid-template-rows 0.5s cubic-bezier(0.22, 1, 0.36, 1), margin 0.5s ease;
+}
+.step[data-on] .step-body {
+  grid-template-rows: 1fr;
+  margin-top: 8px;
+}
+.steps-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 560px;
+  perspective: 1600px;
+}
+.steps-screen {
+  grid-area: 1 / 1;
+  opacity: 0;
+  transform: translate3d(60px, 20px, -140px) rotateY(-22deg) rotateX(6deg);
+  transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1), transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+.steps-screen[data-on] {
+  opacity: 1;
+  transform: rotateY(-9deg) rotateX(3deg);
+}
+@media (max-width: 1023px) {
+  .steps-stage {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .steps,
+  .steps-screen,
+  .step-body,
+  .hero-wordmark {
+    transition: none;
+  }
+}

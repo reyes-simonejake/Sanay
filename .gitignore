@@ -1,0 +1,29 @@
+node_modules/
+dist/
+src-tauri/target/
+src-tauri/gen/
+*.log
+.DS_Store
+# Model weights are downloaded, not committed
+models/*
+!models/README.md
+# Test clips can be large / contain voices
+tests/audio_samples/*
+!tests/audio_samples/README.md
+*.tsbuildinfo
+dist-web/
+# Third-party agent skills: restored from skills-lock.json, not part of Sanay's source
+.agents/
+.claude/skills/
+.claude/settings.local.json
+# Design inspiration collected from the web (third-party, not used by the app)
+src/sources/
+
+# end-to-end test screenshots
+tests/e2e/shots/
+
+# Design references collected while designing (third-party videos and screenshots)
+design-ref/
+# Local tool setup and design-tool working files
+.mcp.json
+.impeccable/

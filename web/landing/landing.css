@@ -1,0 +1,352 @@
+/* Landing sections. Tokens come from src/index.css. */
+@import "@fontsource-variable/funnel-display";
+
+/* Headings on the landing page: Funnel Display, rounder and warmer than the UI face. */
+.font-display {
+  font-family: "Funnel Display Variable", "Mona Sans Variable", "Segoe UI", system-ui, sans-serif;
+}
+
+/* ---- Hero: the practice call card -------------------------------------- */
+.call-card {
+  background:
+    radial-gradient(120% 60% at 50% 0%, color-mix(in oklab, var(--hero-voice, var(--brand)) 16%, transparent), transparent 70%),
+    color-mix(in oklab, var(--card) 88%, transparent);
+  border: 1px solid var(--glass-edge);
+  box-shadow:
+    0 1px 0 0 rgb(255 255 255 / 0.06) inset,
+    0 40px 80px -40px rgb(0 0 0 / 0.7);
+  backdrop-filter: blur(18px);
+}
+.call-live {
+  box-shadow: 0 0 0 0 color-mix(in oklab, var(--ok, #5fd39a) 60%, transparent);
+  animation: call-live 2s ease-out infinite;
+}
+@keyframes call-live {
+  to {
+    box-shadow: 0 0 0 6px transparent;
+  }
+}
+.call-meter span {
+  width: 3px;
+  border-radius: 99px;
+  background: var(--foreground);
+  opacity: 0.75;
+  height: calc(100% * var(--h) * (0.25 + 0.75 * var(--lvl, 0)));
+  min-height: 3px;
+  transform-origin: center;
+  animation: call-bar 1.1s ease-in-out infinite alternate;
+}
+@keyframes call-bar {
+  from {
+    transform: scaleY(0.55);
+  }
+  to {
+    transform: scaleY(1.9);
+  }
+}
+.call-btn {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--foreground) 9%, transparent);
+  border: 1px solid var(--glass-edge);
+}
+.call-btn-end {
+  color: #fff;
+  background: color-mix(in oklab, var(--destructive, #ff6b5e) 82%, black);
+  border-color: transparent;
+}
+
+/* ---- Situation wall ---------------------------------------------------- */
+.wall-stage {
+  perspective-origin: 50% 50%;
+  transform-style: preserve-3d;
+}
+.wall-ring {
+  transform-style: preserve-3d;
+}
+.wall-tile {
+  width: var(--tile-w, 480px);
+  height: var(--tile-h, 320px);
+  backface-visibility: hidden;
+  will-change: transform, opacity;
+}
+.wall-card {
+  box-shadow: 0 24px 48px -28px rgb(0 0 0 / 0.55);
+}
+.wall-line {
+  background:
+    radial-gradient(120% 90% at 0% 100%, color-mix(in oklab, var(--brand) 22%, transparent), transparent 60%),
+    var(--card);
+}
+.wall-vignette {
+  background: linear-gradient(90deg, var(--background), transparent 9%, transparent 91%, var(--background));
+}
+
+/* ---- How it works ------------------------------------------------------ */
+.how-row {
+  scrollbar-width: none;
+}
+.how-row::-webkit-scrollbar {
+  display: none;
+}
+.how-card {
+  overflow: hidden;
+  border-radius: 22px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  transition:
+    transform 0.25s ease,
+    border-color 0.25s ease;
+}
+.how-card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in oklab, var(--light) 35%, var(--border));
+}
+.how-visual {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 200px;
+  overflow: hidden;
+  background:
+    radial-gradient(80% 90% at 50% 0%, color-mix(in oklab, var(--light) 22%, transparent), transparent 75%),
+    color-mix(in oklab, var(--foreground) 3%, transparent);
+  border-bottom: 1px solid var(--border);
+}
+/* Loops play only while the section is on screen. */
+.how:not([data-play]) .how-visual *,
+.how:not([data-play]) .how-visual *::before {
+  animation-play-state: paused !important;
+}
+
+/* 1. Pick: a fan of situations, the front card cycling to the back. */
+.pick-stack {
+  position: relative;
+  width: 132px;
+  height: 160px;
+}
+.pick-card {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 14px;
+  border: 2px solid var(--card);
+  box-shadow: 0 16px 30px -14px rgb(0 0 0 / 0.6);
+  animation: pick-cycle 9s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+@keyframes pick-cycle {
+  0%,
+  28% {
+    transform: translateX(0) rotate(0deg) scale(1);
+    z-index: 3;
+    opacity: 1;
+  }
+  33%,
+  61% {
+    transform: translateX(46px) rotate(9deg) scale(0.9);
+    z-index: 1;
+    opacity: 0.55;
+  }
+  66%,
+  94% {
+    transform: translateX(-46px) rotate(-9deg) scale(0.9);
+    z-index: 2;
+    opacity: 0.75;
+  }
+  100% {
+    transform: translateX(0) rotate(0deg) scale(1);
+    z-index: 3;
+    opacity: 1;
+  }
+}
+
+/* 2. Practice: the other person talking. */
+.talk {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 160px;
+  height: 160px;
+}
+.talk-orb {
+  width: 64px;
+  height: 64px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 50% 70%, #fff 0%, var(--light) 50%, color-mix(in oklab, var(--light) 35%, black) 100%);
+  box-shadow: 0 0 36px -4px var(--light);
+  animation: talk-breathe 1.8s ease-in-out infinite alternate;
+}
+.talk-ring {
+  position: absolute;
+  width: 64px;
+  height: 64px;
+  border-radius: 999px;
+  border: 1.5px solid color-mix(in oklab, var(--light) 70%, white);
+  animation: talk-ring 2.7s ease-out infinite;
+}
+@keyframes talk-breathe {
+  to {
+    transform: scale(1.08);
+  }
+}
+@keyframes talk-ring {
+  from {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  to {
+    transform: scale(2.5);
+    opacity: 0;
+  }
+}
+
+/* 3. Improve: the score ring. */
+.score {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+.score-track,
+.score-fill {
+  fill: none;
+  stroke-width: 9;
+}
+.score-track {
+  stroke: color-mix(in oklab, var(--foreground) 10%, transparent);
+}
+.score-fill {
+  stroke: var(--light);
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 8px color-mix(in oklab, var(--light) 60%, transparent));
+}
+.score-num {
+  position: absolute;
+  font-size: 40px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+/* 4. Sound clear: noise swept into a clean voice. */
+.clean {
+  position: relative;
+  width: 78%;
+  height: 84px;
+}
+.clean-layer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.clean-layer span {
+  width: 3px;
+  border-radius: 99px;
+}
+.clean-noisy span {
+  background: color-mix(in oklab, var(--foreground) 35%, transparent);
+}
+.clean-voice span {
+  background: var(--light);
+  box-shadow: 0 0 8px color-mix(in oklab, var(--light) 50%, transparent);
+}
+.clean-noisy {
+  animation: clean-hide 3.6s ease-in-out infinite;
+}
+.clean-voice {
+  animation: clean-show 3.6s ease-in-out infinite;
+}
+.clean-scan {
+  position: absolute;
+  top: -10px;
+  bottom: -10px;
+  width: 2px;
+  border-radius: 2px;
+  background: linear-gradient(transparent, var(--foreground), transparent);
+  animation: clean-scan 3.6s ease-in-out infinite;
+}
+@keyframes clean-show {
+  0%,
+  8% {
+    clip-path: inset(0 100% 0 0);
+  }
+  70%,
+  100% {
+    clip-path: inset(0 0 0 0);
+  }
+}
+@keyframes clean-hide {
+  0%,
+  8% {
+    clip-path: inset(0 0 0 0);
+  }
+  70%,
+  100% {
+    clip-path: inset(0 0 0 100%);
+  }
+}
+@keyframes clean-scan {
+  0%,
+  8% {
+    left: 0%;
+    opacity: 1;
+  }
+  70% {
+    left: 100%;
+    opacity: 1;
+  }
+  80%,
+  100% {
+    left: 100%;
+    opacity: 0;
+  }
+}
+
+/* ---- Practice packs: ribbon to grid ------------------------------------ */
+.packs-grid {
+  perspective: 1400px;
+}
+.pack-card {
+  transform-origin: 50% 50%;
+  transition: border-color 0.2s;
+}
+.pack-card:hover {
+  border-color: var(--glass-edge);
+}
+
+/* Under reduced motion, everything rests in its finished state. */
+@media (prefers-reduced-motion: reduce) {
+  .call-live,
+  .call-meter span,
+  .pick-card,
+  .talk-orb,
+  .talk-ring,
+  .clean-noisy,
+  .clean-voice,
+  .clean-scan {
+    animation: none !important;
+  }
+  .pick-card:nth-child(2) {
+    transform: translateX(46px) rotate(9deg) scale(0.9);
+    opacity: 0.55;
+  }
+  .pick-card:nth-child(3) {
+    transform: translateX(-46px) rotate(-9deg) scale(0.9);
+    opacity: 0.75;
+  }
+  .pick-card:nth-child(1) {
+    z-index: 3;
+  }
+  .talk-ring {
+    display: none;
+  }
+  .clean-noisy,
+  .clean-scan {
+    display: none;
+  }
+}

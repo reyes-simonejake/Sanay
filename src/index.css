@@ -1,0 +1,384 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/mona-sans/wdth.css";
+
+/* Dark by default (the references, and most call apps at night). The theme is <html data-theme>,
+   set by lib/theme.ts: System (follows Windows), Light or Dark, and every switch is animated. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+@custom-variant light (&:where([data-theme="light"], [data-theme="light"] *));
+
+/*
+ * "Luminous Voice": night ink, quiet frosted surfaces, hairline borders.
+ * The only saturated colour is light itself, the orb, and its colour is the voice.
+ *   Brand primary   = Luminous Indigo (--brand): focus, links, selected states, the CTA glow.
+ *   Brand secondary = Ember (--ember): the warm rim of the light, used sparingly.
+ * shadcn's --primary is the high-contrast button (white on night, ink on paper).
+ */
+:root {
+  color-scheme: dark light;
+  --radius: 0.875rem;
+
+  --background: #06070c;
+  --foreground: #eef0f6;
+  --card: #0d0f17;
+  --card-foreground: #eef0f6;
+  --popover: #10131c;
+  --popover-foreground: #eef0f6;
+  --primary: #f3f4f8;
+  --primary-foreground: #06070c;
+  --secondary: #161925;
+  --secondary-foreground: #eef0f6;
+  --muted: #141722;
+  --muted-foreground: #959cae;
+  --accent: #1a1f3d;
+  --accent-foreground: #c9d0ff;
+  --destructive: #ff6b5e;
+  --border: rgb(255 255 255 / 0.08);
+  --input: rgb(255 255 255 / 0.14);
+  --ring: #7d88ff;
+
+  --brand: #6f7bff;
+  --brand-foreground: #ffffff;
+  --ember: #ff8a4c;
+  --glass: rgb(17 20 31 / 0.62);
+  --glass-edge: rgb(255 255 255 / 0.09);
+  --ok: #5fd39a;
+  --warn: #f2b45a;
+  --live: #9aa6ff;
+
+  /* Voice light (UI swatches; the orb shader uses the matching values in lib/orb.ts). */
+  --voice-masculine: #3f6bff;
+  --voice-feminine: #a35cff;
+  --voice-natural: #c4ccd8;
+
+  --pill-bg: rgb(12 14 22 / 0.88);
+  --pill-fg: #eef0f6;
+  --pill-edge: rgb(255 255 255 / 0.12);
+  --lamp-off: #2c3140;
+  --warn-bright: #f2b45a;
+  --logo-tile: #06070c;
+  --logo-edge: rgb(255 255 255 / 0.1);
+}
+
+:root[data-theme="light"] {
+  & {
+    --background: #f5f6fa;
+    --foreground: #0b0d14;
+    --card: #ffffff;
+    --card-foreground: #0b0d14;
+    --popover: #ffffff;
+    --popover-foreground: #0b0d14;
+    --primary: #0b0d14;
+    --primary-foreground: #f5f6fa;
+    --secondary: #eceef4;
+    --secondary-foreground: #0b0d14;
+    --muted: #eceef4;
+    --muted-foreground: #586073;
+    --accent: #e7e9ff;
+    --accent-foreground: #2c36b8;
+    --destructive: #c8321f;
+    --border: rgb(11 13 20 / 0.09);
+    --input: rgb(11 13 20 / 0.16);
+    --ring: #4b57f0;
+
+    --brand: #4b57f0;
+    --ember: #e2621f;
+    --glass: rgb(255 255 255 / 0.72);
+    --glass-edge: rgb(11 13 20 / 0.08);
+    --ok: #1d7f52;
+    --warn: #9a5a06;
+    --live: #4b57f0;
+
+    --voice-masculine: #2d55f0;
+    --voice-feminine: #8b3ff0;
+    --voice-natural: #7c8799;
+    --logo-tile: #e8eaff;
+    --logo-edge: rgb(75 87 240 / 0.18);
+  }
+}
+
+@theme inline {
+  --font-sans: "Mona Sans Variable", "Segoe UI", system-ui, sans-serif;
+  --font-heading: var(--font-sans);
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-ember: var(--ember);
+  --color-glass: var(--glass);
+  --color-glass-edge: var(--glass-edge);
+  --color-ok: var(--ok);
+  --color-warn: var(--warn);
+  --color-warn-bright: var(--warn-bright);
+  --color-live: var(--live);
+  --color-lamp-off: var(--lamp-off);
+  --color-pill: var(--pill-bg);
+  --color-pill-foreground: var(--pill-fg);
+  --color-pill-edge: var(--pill-edge);
+  --color-voice-masculine: var(--voice-masculine);
+  --color-voice-feminine: var(--voice-feminine);
+  --color-voice-natural: var(--voice-natural);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.5);
+  --radius-md: calc(var(--radius) * 0.75);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.3);
+  --radius-2xl: calc(var(--radius) * 1.7);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+    font-optical-sizing: auto;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    margin: 0;
+    caret-color: var(--brand);
+    font-variant-numeric: tabular-nums;
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+    letter-spacing: -0.02em;
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--brand) 35%, transparent);
+    color: var(--foreground);
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--input) transparent;
+  }
+  /* The floating pill window is transparent: only the capsule paints. */
+  html.pill-window,
+  html.pill-window body {
+    background: transparent;
+    overflow: hidden;
+  }
+}
+
+@layer components {
+  /* Frosted surface: one elevation (a hairline edge), never a border plus a wide shadow. */
+  .glass {
+    background: var(--glass);
+    border: 1px solid var(--glass-edge);
+    backdrop-filter: blur(18px) saturate(140%);
+  }
+}
+
+/* Theme switch. A button switch reveals the new theme as a growing circle of light from the
+   button; a Windows switch crossfades. Fallback (no View Transitions): a short colour transition. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+html[data-vt="reveal"]::view-transition-new(root) {
+  animation: theme-reveal 720ms var(--ease-out-expo) both;
+}
+html[data-vt="fade"]::view-transition-old(root) {
+  animation: theme-fade-out 520ms ease both;
+}
+html[data-vt="fade"]::view-transition-new(root) {
+  animation: theme-fade-in 520ms ease both;
+}
+/* Page changes on the website (router.ts): the page fades and lifts, and the orb, named "orb" on
+   every page, glides from its old place and size to its new one. */
+html:not([data-vt])::view-transition-old(root) {
+  animation: page-out 320ms ease both;
+}
+html:not([data-vt])::view-transition-new(root) {
+  animation: page-in 560ms var(--ease-out-expo) both;
+}
+::view-transition-group(orb) {
+  animation-duration: 760ms;
+  animation-timing-function: var(--ease-out-expo);
+}
+::view-transition-old(orb),
+::view-transition-new(orb) {
+  animation-duration: 760ms;
+}
+@keyframes page-out {
+  to {
+    opacity: 0;
+    filter: blur(6px);
+    transform: translateY(-8px);
+  }
+}
+@keyframes page-in {
+  from {
+    opacity: 0;
+    filter: blur(6px);
+    transform: translateY(12px);
+  }
+}
+@keyframes theme-reveal {
+  from {
+    clip-path: circle(0 at var(--vt-x, 50%) var(--vt-y, 0));
+    filter: brightness(1.25);
+  }
+  to {
+    clip-path: circle(var(--vt-r, 150vmax) at var(--vt-x, 50%) var(--vt-y, 0));
+    filter: brightness(1);
+  }
+}
+@keyframes theme-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes theme-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+html.theme-changing,
+html.theme-changing *,
+html.theme-changing *::before,
+html.theme-changing *::after {
+  transition:
+    background-color 500ms ease,
+    color 500ms ease,
+    border-color 500ms ease,
+    fill 500ms ease,
+    box-shadow 500ms ease !important;
+}
+
+/* Splash: the off-ring draws itself, blooms into the orb, the wordmark settles, then it dissolves. */
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 18px;
+  background: var(--background);
+  transition:
+    opacity 520ms ease,
+    filter 520ms ease;
+}
+.splash[data-phase="out"] {
+  opacity: 0;
+  filter: blur(8px);
+  pointer-events: none;
+}
+.splash-mark {
+  width: 120px;
+  height: 120px;
+  overflow: visible;
+  filter: drop-shadow(0 0 18px color-mix(in oklab, var(--brand) 70%, transparent));
+}
+.splash-ring {
+  transform-origin: 60px 60px;
+  transform: rotate(-90deg);
+  stroke-dasharray: 277;
+  stroke-dashoffset: 277;
+  animation: splash-draw 900ms var(--ease-out-expo) 80ms forwards;
+}
+.splash-core {
+  transform-origin: 60px 60px;
+  transform: scale(0.2);
+  opacity: 0;
+  animation:
+    splash-bloom 900ms var(--ease-out-expo) 520ms forwards,
+    splash-breathe 2.4s ease-in-out 1.4s infinite;
+}
+.splash-word {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  font-stretch: 112%;
+  opacity: 0;
+  transform: translateY(6px);
+  animation: splash-word 700ms var(--ease-out-expo) 700ms forwards;
+}
+@keyframes splash-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes splash-bloom {
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@keyframes splash-breathe {
+  50% {
+    transform: scale(1.06);
+  }
+}
+@keyframes splash-word {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Status screens: a broken ring (error) or a light travelling the ring (maintenance). */
+.status-ring {
+  overflow: visible;
+  color: var(--foreground);
+  filter: drop-shadow(0 0 14px color-mix(in oklab, var(--brand) 55%, transparent));
+}
+.status-arc {
+  transform-origin: 60px 60px;
+  transform: rotate(-60deg);
+  stroke-dasharray: 72 28;
+}
+.status-ring--travel .status-arc {
+  stroke-dasharray: 22 78;
+  animation: status-travel 2.8s linear infinite;
+}
+@keyframes status-travel {
+  to {
+    transform: rotate(300deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .splash-ring {
+    stroke-dashoffset: 0;
+  }
+  .splash-core,
+  .splash-word {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
