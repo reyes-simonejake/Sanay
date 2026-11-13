@@ -9,6 +9,7 @@ import {
   AudioLines,
   BookOpen,
   Cable,
+  ChevronDown,
   CircleCheck,
   CreditCard,
   ExternalLink,
@@ -37,6 +38,15 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
@@ -126,7 +136,7 @@ export function AccountPage({
   if (!user) return <div className="min-h-svh" />;
 
   return (
-    <section className="mx-auto grid max-w-6xl grid-cols-1 gap-10 px-5 pt-24 pb-24 sm:px-8 lg:grid-cols-[232px_1fr] lg:pt-28">
+    <section className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-5 pt-20 pb-24 sm:px-8 lg:grid-cols-[232px_1fr] lg:gap-10 lg:pt-28">
       <Sidebar user={user} tab={tab} />
       <div
         key={tab}
@@ -240,20 +250,13 @@ export async function signOut(
 function Sidebar({ user, tab }: { user: User; tab: Tab }) {
   const { t } = useT();
   const { backend, setUser } = useAuth();
-  // Phones: keep the open tab in view in the sideways-scrolling row.
-  const navRef = useRef<HTMLElement>(null);
-  useEffect(() => {
-    const row = navRef.current;
-    const on = row?.querySelector<HTMLElement>('[aria-current="page"]');
-    if (!row || !on || row.scrollWidth <= row.clientWidth) return;
-    row.scrollTo({ left: on.offsetLeft - row.clientWidth / 2 + on.offsetWidth / 2, behavior: "instant" as ScrollBehavior });
-  }, [tab]);
   return (
-    // On phones the sidebar dissolves into the page grid, so its tab row can stay pinned at the top
-    // while you scroll; on computers it is the sticky sidebar.
+    // On phones the sidebar dissolves into the page grid, so its section switcher can stay pinned at the
+    // top while you scroll; on computers it is the sticky sidebar.
     <aside className="min-w-0 max-lg:contents lg:sticky lg:top-24 lg:self-start">
-      {/* Identity, once. */}
-      <div className="flex items-center gap-3">
+      <SectionSwitcher tab={tab} />
+      {/* Identity, once (on phones the avatar in the top bar already says who you are). */}
+      <div className="hidden items-center gap-3 lg:flex">
         <Avatar user={user} className="size-11 text-[14px]" />
         <div className="min-w-0">
           <p className="truncate text-[15px] font-semibold">{user.name}</p>
@@ -262,18 +265,14 @@ function Sidebar({ user, tab }: { user: User; tab: Tab }) {
           </p>
         </div>
       </div>
-      <nav
-        ref={navRef}
-        aria-label={t("account.title")}
-        className="scroll-fade sticky top-0 z-20 -mx-5 -mt-6 overflow-x-auto border-b border-border bg-background/85 px-5 py-2 backdrop-blur-md sm:-mx-8 sm:px-8 lg:static lg:mx-0 lg:mt-6 lg:overflow-visible lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none"
-      >
-        <ul className="flex gap-1 lg:flex-col">
+      <nav aria-label={t("account.title")} className="mt-6 hidden lg:block">
+        <ul className="flex flex-col gap-1">
           {GROUPS.flatMap((g) => [
             g.label ? (
               <li
                 key={g.label}
                 aria-hidden
-                className="hidden px-3 pt-4 pb-1 text-[11px] font-medium tracking-[0.06em] text-muted-foreground/80 uppercase lg:block"
+                className="px-3 pt-4 pb-1 text-[11px] font-medium tracking-[0.06em] text-muted-foreground/80 uppercase"
               >
                 {t(g.label)}
               </li>
@@ -286,7 +285,7 @@ function Sidebar({ user, tab }: { user: User; tab: Tab }) {
                     href={`#/account/${k}`}
                     aria-current={on ? "page" : undefined}
                     className={cn(
-                      "flex h-10 items-center gap-2.5 rounded-lg px-3 text-[14px] whitespace-nowrap transition-colors lg:h-9",
+                      "flex h-9 items-center gap-2.5 rounded-lg px-3 text-[14px] whitespace-nowrap transition-colors",
                       on
                         ? "bg-foreground/[0.07] font-medium text-foreground"
                         : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground",
@@ -318,6 +317,56 @@ function Sidebar({ user, tab }: { user: User; tab: Tab }) {
         <LogOut aria-hidden className="size-4" /> {t("account.signOut")}
       </button>
     </aside>
+  );
+}
+
+/**
+ * Phones: one full-width button that says which section you are in and opens every section, grouped like the
+ * computer sidebar. It stays pinned at the top of the screen while you scroll.
+ */
+function SectionSwitcher({ tab }: { tab: Tab }) {
+  const { t } = useT();
+  const index = TABS.findIndex(([k]) => k === tab);
+  const Current = TABS[index]![1];
+  return (
+    <div className="sticky top-0 z-20 -mx-5 border-b border-border bg-background/85 px-5 py-2.5 backdrop-blur-md sm:-mx-8 sm:px-8 lg:hidden">
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          aria-label={t("account.title")}
+          className="group flex h-12 w-full items-center gap-3 rounded-xl border border-border bg-card/60 px-4 text-left outline-none transition-colors focus-visible:outline-2 focus-visible:outline-ring data-[state=open]:bg-card"
+        >
+          <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-brand/15 text-brand">
+            <Current aria-hidden className="size-4" />
+          </span>
+          <span className="min-w-0 flex-1 truncate text-[15px] font-medium">{t(`account.tab.${tab}` as TKey)}</span>
+          <span className="text-[13px] text-muted-foreground tabular-nums">
+            {index + 1}/{TABS.length}
+          </span>
+          <ChevronDown aria-hidden className="size-4 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" sideOffset={6} className="glass w-[var(--radix-dropdown-menu-trigger-width)] rounded-xl p-1.5">
+          {GROUPS.map((g, gi) => (
+            <DropdownMenuGroup key={gi}>
+              {gi > 0 && <DropdownMenuSeparator />}
+              {g.label && (
+                <DropdownMenuLabel className="px-2.5 pt-2 pb-1 text-[11px] font-medium tracking-[0.06em] text-muted-foreground uppercase">
+                  {t(g.label)}
+                </DropdownMenuLabel>
+              )}
+              {g.tabs.map(([k, Icon]) => (
+                <DropdownMenuItem key={k} asChild className={cn("h-11 gap-3 rounded-lg px-2.5 text-[15px]", k === tab && "bg-foreground/[0.07] font-medium")}>
+                  <a href={`#/account/${k}`} aria-current={k === tab ? "page" : undefined}>
+                    <Icon aria-hidden className={cn("size-4", k === tab ? "text-brand" : "text-muted-foreground")} />
+                    {t(`account.tab.${k}` as TKey)}
+                    {k === tab && <CircleCheck aria-hidden className="ml-auto size-4 text-brand" />}
+                  </a>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuGroup>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   );
 }
 
@@ -411,7 +460,7 @@ function Overview({ user }: { user: User }) {
             <p className="mt-2 max-w-sm text-[14px] text-muted-foreground">
               {t(`voice.${user.defaultVoice}.desc` as TKey)}
             </p>
-            <div className="mt-6 flex flex-wrap gap-2">
+            <div className="mt-6 grid grid-cols-1 gap-2 min-[380px]:grid-cols-2 sm:flex sm:flex-wrap">
               <Button
                 onClick={() => {
                   navigate("home");
@@ -423,7 +472,7 @@ function Overview({ user }: { user: User }) {
                     700,
                   );
                 }}
-                className="h-10 gap-2 rounded-full px-5"
+                className="h-11 gap-2 rounded-full px-4 sm:h-10 sm:px-5"
               >
                 <AudioLines aria-hidden className="size-4" />{" "}
                 {t("web.hero.cta")}
@@ -431,7 +480,7 @@ function Overview({ user }: { user: User }) {
               <Button
                 variant="outline"
                 onClick={() => navigate("account", "preferences")}
-                className="h-10 rounded-full bg-transparent px-5"
+                className="h-11 rounded-full bg-transparent px-4 sm:h-10 sm:px-5"
               >
                 {t("account.changeVoice")}
               </Button>
@@ -561,7 +610,7 @@ function SignalPath({
             </span>
             <span
               className={cn(
-                "mt-3 text-[12px] leading-tight sm:text-[13px]",
+                "mt-3 min-h-[2lh] text-[12px] leading-tight text-balance sm:min-h-0 sm:text-[13px]",
                 isDone || isNext
                   ? "font-medium text-foreground"
                   : "text-muted-foreground",
@@ -595,9 +644,9 @@ function NextStep({ step }: { step: StepId }) {
           {t(`account.next.${step}.body` as TKey)}
         </p>
       </div>
-      <div className="flex flex-wrap gap-2">
+      <div className={cn("grid gap-2 sm:flex sm:flex-wrap", step === "cable" && "min-[380px]:grid-cols-2")}>
         {step === "cable" && (
-          <Button asChild className="h-10 gap-2 rounded-full px-5">
+          <Button asChild className="h-11 gap-2 rounded-full px-4 sm:h-10 sm:px-5">
             <a href={VB_CABLE_URL} target="_blank" rel="noreferrer">
               {t("account.setup.cableCta")}{" "}
               <ExternalLink aria-hidden className="size-3.5" />
@@ -607,7 +656,7 @@ function NextStep({ step }: { step: StepId }) {
         <Button
           asChild
           variant="outline"
-          className="h-10 rounded-full bg-transparent px-5"
+          className="h-11 rounded-full bg-transparent px-4 sm:h-10 sm:px-5"
         >
           <a
             href={`#/guide/${step === "cable" ? "vbcable" : step === "app" ? "setup" : "calls"}`}
