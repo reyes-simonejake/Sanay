@@ -13,16 +13,13 @@ import { CHAPTERS, clamp, journey } from "./store";
 import "./journey.css";
 import "./flow.css";
 
+import { hasWebGL } from "../../src/lib/webgl";
+
 const Scene = lazy(() => import("./Scene"));
 
 function canDraw3D() {
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return false;
-  try {
-    const c = document.createElement("canvas");
-    return !!(c.getContext("webgl2") || c.getContext("webgl"));
-  } catch {
-    return false;
-  }
+  return hasWebGL();
 }
 
 const FACT_CHAPTERS = [1, 2, 3];
@@ -33,6 +30,16 @@ export function Journey({ lab, level, onStart }: { lab: VoiceLab; level: number;
   const { theme } = useTheme();
   const [active, setActive] = useState(0);
   const [three] = useState(canDraw3D);
+  // The city lets go of its WebGL context once it is well off screen (phones only allow a few) and
+  // comes back when you scroll up to it.
+  const [near, setNear] = useState(true);
+  useEffect(() => {
+    const el = wrap.current;
+    if (!el || !three) return;
+    const io = new IntersectionObserver(([e]) => setNear(e.isIntersecting), { rootMargin: "600px 0px" });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [three]);
   const live = lab.phase === "live";
 
   journey.level = level;
@@ -78,7 +85,7 @@ export function Journey({ lab, level, onStart }: { lab: VoiceLab; level: number;
     <section ref={wrap} id="top" tabIndex={-1} aria-label="Sanay" className="journey relative outline-none" data-chapter={active} style={{ height: `${CHAPTERS * 100}vh` }}>
       <div className="sticky top-0 h-screen overflow-hidden">
         <div aria-hidden className="journey-backdrop absolute inset-0" />
-        {three && (
+        {three && near && (
           <Suspense fallback={null}>
             <Scene />
           </Suspense>

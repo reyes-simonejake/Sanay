@@ -4,8 +4,9 @@ import { OrbRenderer, type OrbVoice } from "../lib/orb";
 import { useTheme } from "../lib/theme";
 
 /**
- * The living orb. `level` is 0..1 (the live voice). Renders with WebGL; if WebGL is unavailable
- * it falls back to a still gradient so the state is never lost.
+ * The living orb. `level` is 0..1 (the live voice). Renders with WebGL while it is near the screen
+ * and hands the context back when it leaves; off screen, or where WebGL is missing or lost, it
+ * shows a still gradient so the state is never lost.
  */
 export function Orb({
   on,
@@ -22,17 +23,30 @@ export function Orb({
   className?: string;
 }) {
   const canvas = useRef<HTMLCanvasElement>(null);
+  const box = useRef<HTMLElement | null>(null);
   const renderer = useRef<OrbRenderer | null>(null);
+  /** WebGL failed or the browser took the context away: show the still orb for good. */
   const [fallback, setFallback] = useState(false);
+  /** Near the screen. Only then does the orb hold a WebGL context (phones allow just a few per page). */
+  const [live, setLive] = useState(false);
   const { theme } = useTheme();
   const latest = useRef({ on, voice, level });
   const silkRef = useRef(silk);
   silkRef.current = silk;
   latest.current = { on, voice, level };
 
+  // Watch whichever element is showing (the canvas or the still orb).
+  useEffect(() => {
+    const el = box.current;
+    if (!el || fallback) return;
+    const io = new IntersectionObserver(([e]) => setLive(e.isIntersecting), { rootMargin: "200px 0px" });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [live, fallback]);
+
   useEffect(() => {
     const c = canvas.current;
-    if (!c) return;
+    if (!live || fallback || !c) return;
     let r: OrbRenderer | null = null;
     try {
       r = OrbRenderer.create(c);
@@ -55,19 +69,20 @@ export function Orb({
     };
     sync();
     motion.addEventListener("change", sync);
-    // Only animate while visible.
-    const io = new IntersectionObserver(([e]) => (e.isIntersecting ? r!.run() : r!.stop()));
-    io.observe(c);
+    r.run();
     const onVis = () => (document.hidden ? r!.stop() : r!.run());
     document.addEventListener("visibilitychange", onVis);
+    // If the browser takes the context back anyway, never leave a blank box behind.
+    const onLost = () => setFallback(true);
+    c.addEventListener("webglcontextlost", onLost);
     return () => {
-      io.disconnect();
+      c.removeEventListener("webglcontextlost", onLost);
       document.removeEventListener("visibilitychange", onVis);
       motion.removeEventListener("change", sync);
-      r!.destroy();
+      r!.release();
       renderer.current = null;
     };
-  }, []);
+  }, [live, fallback]);
 
   useEffect(() => {
     if (renderer.current) renderer.current.target = { on, voice, level };
@@ -76,9 +91,12 @@ export function Orb({
     if (renderer.current) renderer.current.light = theme === "light";
   }, [theme]);
 
-  if (fallback) {
+  if (fallback || !live) {
     return (
       <div
+        ref={(el) => {
+          box.current = el;
+        }}
         aria-hidden
         className={cn("rounded-full", className)}
         style={{
@@ -89,5 +107,14 @@ export function Orb({
       />
     );
   }
-  return <canvas ref={canvas} aria-hidden className={cn("block", className)} />;
+  return (
+    <canvas
+      ref={(el) => {
+        canvas.current = el;
+        box.current = el;
+      }}
+      aria-hidden
+      className={cn("block", className)}
+    />
+  );
 }

@@ -1,11 +1,14 @@
 /* Features (after Sellix): alternating rows, tilted product screens, a flow with light on its lines. */
+/* Mobile first: one column, words then the screen. Side by side from 1024px. */
 .feature-row {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   align-items: center;
-  gap: 48px;
+  gap: 32px;
 }
 @media (min-width: 1024px) {
   .feature-row {
+    gap: 48px;
     grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
   }
   .feature-row[data-flip] {
@@ -36,24 +39,86 @@
 .feature-stage {
   display: flex;
   justify-content: center;
-  perspective: 1600px;
+  min-width: 0;
 }
-.feature-stage > * {
-  transform: rotateY(-12deg) rotateX(5deg);
-  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-}
-.feature-stage-flip > * {
-  transform: rotateY(12deg) rotateX(5deg);
-}
-.feature-row:hover .feature-stage > * {
-  transform: rotateY(0deg) rotateX(0deg) translateY(-4px);
+/* The tilt toward the words only where there is room for it and a mouse to straighten it. */
+@media (min-width: 1024px) {
+  .feature-stage {
+    perspective: 1600px;
+  }
+  .feature-stage > * {
+    transform: rotateY(-12deg) rotateX(5deg);
+    transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .feature-stage-flip > * {
+    transform: rotateY(12deg) rotateX(5deg);
+  }
+  .feature-row:hover .feature-stage > * {
+    transform: rotateY(0deg) rotateX(0deg) translateY(-4px);
+  }
 }
 
-/* Your mic → Sanay → the call app. */
+/* Phones and tablets: no hover, so each screen glows on its own and settles from a tilt to flat
+   as you scroll it into view. Browsers without scroll-linked animation keep a gentle fixed tilt. */
+@media (max-width: 1023.98px) {
+  .feature-stage {
+    position: relative;
+    isolation: isolate;
+    perspective: 1200px;
+  }
+  .feature-stage::before {
+    content: "";
+    position: absolute;
+    inset: -12% -20%;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(50% 45% at 50% 45%, color-mix(in oklab, var(--brand) 34%, transparent), transparent 70%),
+      radial-gradient(35% 30% at 70% 75%, color-mix(in oklab, var(--voice-feminine) 22%, transparent), transparent 70%);
+  }
+  .feature-stage > * {
+    transform: rotateY(-7deg) rotateX(6deg);
+  }
+  .feature-stage-flip > * {
+    transform: rotateY(7deg) rotateX(6deg);
+  }
+  @supports (animation-timeline: view()) {
+    .feature-stage > * {
+      animation: feature-settle linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 40%;
+    }
+    .feature-stage-flip > * {
+      animation-name: feature-settle-flip;
+    }
+  }
+}
+@keyframes feature-settle {
+  from {
+    opacity: 0.35;
+    transform: translateY(48px) rotateY(-14deg) rotateX(16deg) scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes feature-settle-flip {
+  from {
+    opacity: 0.35;
+    transform: translateY(48px) rotateY(14deg) rotateX(16deg) scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Your mic → Sanay → the call app. On phones it runs top to bottom; from 640px, left to right. */
 .flow {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 0;
 }
 .flow-node {
   position: relative;
@@ -83,28 +148,60 @@
 }
 .flow-tag {
   position: absolute;
-  top: -26px;
-  left: 50%;
-  transform: translateX(-50%);
+  top: 50%;
+  left: calc(100% + 10px);
+  transform: translateY(-50%);
   font-size: 11px;
   font-weight: 600;
   color: var(--ok);
 }
 .flow-line {
   position: relative;
-  width: 56px;
-  height: 2px;
+  width: 2px;
+  height: 28px;
   overflow: hidden;
   background: color-mix(in oklab, var(--foreground) 15%, transparent);
 }
 .flow-line::after {
   content: "";
   position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 40%;
-  background: linear-gradient(90deg, transparent, var(--light), transparent);
-  animation: flow-run 1.6s linear infinite;
+  left: 0;
+  right: 0;
+  height: 40%;
+  background: linear-gradient(180deg, transparent, var(--light), transparent);
+  animation: flow-down 1.6s linear infinite;
+}
+@keyframes flow-down {
+  from {
+    transform: translateY(-120%);
+  }
+  to {
+    transform: translateY(300%);
+  }
+}
+@media (min-width: 640px) {
+  .flow {
+    flex-direction: row;
+  }
+  .flow-tag {
+    top: -26px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .flow-line {
+    width: 56px;
+    height: 2px;
+  }
+  .flow-line::after {
+    top: 0;
+    bottom: 0;
+    left: auto;
+    right: auto;
+    width: 40%;
+    height: auto;
+    background: linear-gradient(90deg, transparent, var(--light), transparent);
+    animation-name: flow-run;
+  }
 }
 @keyframes flow-run {
   from {
@@ -181,5 +278,6 @@
   }
   .feature-stage > * {
     transition: none;
+    animation: none !important;
   }
 }

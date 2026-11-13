@@ -14,6 +14,8 @@ import { COPY, PACKS, pick } from "./copy";
 import type { City } from "./three/Globe";
 import "./sections.css";
 
+import { hasWebGL } from "../../src/lib/webgl";
+
 const Globe = lazy(() => import("./three/Globe"));
 const Glass = lazy(() => import("./three/Glass"));
 const LogoMark = lazy(() => import("./three/LogoMark"));
@@ -23,20 +25,14 @@ const VOICE_HEX = {
   light: { masculine: "#2d55f0", feminine: "#8b3ff0", natural: "#7c8799" },
 };
 
-/** Mounts its 3D child only once it is near the screen, and only where WebGL works. */
+/** Mounts its 3D child only while it is near the screen, and only where WebGL works.
+ *  Leaving unmounts it, which hands its WebGL context back (phones only allow a few). */
 function Near({ children, className }: { children: ReactNode; className?: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const [show, setShow] = useState(false);
   useEffect(() => {
-    let ok = false;
-    try {
-      const c = document.createElement("canvas");
-      ok = !!(c.getContext("webgl2") || c.getContext("webgl"));
-    } catch {
-      ok = false;
-    }
-    if (!ok) return;
-    const io = new IntersectionObserver(([e]) => e.isIntersecting && (setShow(true), io.disconnect()), { rootMargin: "300px" });
+    if (!hasWebGL()) return;
+    const io = new IntersectionObserver(([e]) => setShow(e.isIntersecting), { rootMargin: "400px 0px" });
     io.observe(ref.current!);
     return () => io.disconnect();
   }, []);

@@ -47,15 +47,15 @@ export function AppPreview() {
         <p className="mt-3 text-muted-foreground">{t("pv.body")}</p>
       </header>
 
-      <div className="grid gap-8 lg:grid-cols-[240px_1fr]">
-        <nav aria-label={t("pv.screens")} className="flex gap-2 overflow-x-auto pb-2 lg:flex-col lg:overflow-visible">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[240px_1fr] lg:gap-8">
+        <nav aria-label={t("pv.screens")} className="scroll-fade -mx-4 flex snap-x scroll-px-4 gap-2 overflow-x-auto px-4 pb-2 sm:-mx-6 sm:px-6 lg:mx-0 lg:flex-col lg:overflow-visible lg:px-0">
           {SCREENS.map((s, i) => (
             <button
               key={s}
               onClick={() => setScreen(s)}
               aria-current={s === screen ? "true" : undefined}
               className={cn(
-                "flex shrink-0 items-center gap-3 rounded-xl border px-3 py-2.5 text-left text-[14px] transition-colors",
+                "flex shrink-0 snap-start items-center gap-3 rounded-xl border px-3 py-2.5 text-left text-[14px] transition-colors",
                 s === screen ? "border-brand/50 bg-accent text-accent-foreground" : "border-border text-muted-foreground hover:text-foreground",
               )}
             >

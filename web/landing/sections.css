@@ -2,7 +2,9 @@
 .land-section {
   position: relative;
   isolation: isolate;
+  /* clip, not hidden: hidden would make each section its own scroll box and freeze scroll-linked effects. */
   overflow: hidden;
+  overflow: clip;
 }
 /* Soft light in the brand and voice tints: a night glow in dark, a pastel morning (after Imagica) in light. */
 .land-glow::before {

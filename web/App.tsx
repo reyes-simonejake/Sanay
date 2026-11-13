@@ -5,7 +5,7 @@ import { AuthPage } from "./pages/AuthPage";
 import { GuidePage } from "./pages/GuidePage";
 import { AppPreview } from "./pages/AppPreview";
 import { navigate, useRoute } from "./router";
-import { AudioLines, ChevronDown, CircleCheck, Headphones, House, LogOut, Mic, Pause, Play, ShieldCheck, SlidersHorizontal, TriangleAlert, UserRound } from "lucide-react";
+import { AudioLines, ChevronDown, CircleCheck, Headphones, House, LogOut, Mic, Monitor, Pause, Play, Send, ShieldCheck, SlidersHorizontal, TriangleAlert, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -32,7 +32,6 @@ import { Spectrum } from "./Spectrum";
 import { useVoiceLab, type Verdict, type VoiceLab } from "./useVoiceLab";
 import { BackToTop } from "./landing/BackToTop";
 import { COPY, pick } from "./landing/copy";
-import { PHOTOS } from "./landing/photos";
 import { CallPicker, FinalCta, NoiseTiles, Privacy, World } from "./landing/Sections";
 import { Features } from "./landing/Features";
 import { WhoItsFor } from "./landing/WhoItsFor";
@@ -237,7 +236,7 @@ function Nav({ lang, setLang }: { lang: Lang; setLang: (l: Lang) => void }) {
 function VoiceSwatches({ value, onChange, className }: { value: VoiceType; onChange: (v: VoiceType) => void; className?: string }) {
   const { t } = useT();
   return (
-    <div role="radiogroup" aria-label={t("web.voice")} className={cn("glass flex gap-1 rounded-full p-1", className)}>
+    <div role="radiogroup" aria-label={t("web.voice")} className={cn("glass flex max-w-full gap-0.5 rounded-full p-1 sm:gap-1", className)}>
       {VOICES.map((v) => {
         const on = v === value;
         return (
@@ -248,7 +247,7 @@ function VoiceSwatches({ value, onChange, className }: { value: VoiceType; onCha
             aria-checked={on}
             onClick={() => onChange(v)}
             className={cn(
-              "flex h-9 items-center gap-2 rounded-full px-3.5 text-[14px] transition-colors duration-200",
+              "flex h-10 min-w-0 items-center gap-1.5 rounded-full px-2.5 text-[14px] transition-colors duration-200 sm:h-9 sm:gap-2 sm:px-3.5",
               on ? "bg-foreground/10 text-foreground" : "text-muted-foreground hover:text-foreground",
             )}
           >
@@ -587,6 +586,7 @@ function Desktop() {
             ))}
           </ol>
           <p className="mt-10 text-[13px] text-muted-foreground">{t("web.desktopSoon")}</p>
+          <OnYourPhone />
         </div>
 
         <figure className="glass relative overflow-hidden rounded-2xl p-8 sm:p-10">
@@ -601,6 +601,39 @@ function Desktop() {
         </figure>
       </div>
     </section>
+  );
+}
+
+/** Touch screens only: the app is for computers, so offer to send this page to one. */
+function OnYourPhone() {
+  const { t } = useT();
+  const [copied, setCopied] = useState(false);
+  const send = async () => {
+    const url = location.href.split("#")[0]!;
+    try {
+      if (navigator.share) return await navigator.share({ title: "Sanay", url });
+    } catch (err) {
+      if ((err as DOMException).name === "AbortError") return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+    } catch {
+      /* nothing we can do; the address bar still has it */
+    }
+  };
+  return (
+    <div className="mt-8 hidden rounded-2xl border border-border bg-card/60 p-5 pointer-coarse:block">
+      <p className="flex items-center gap-2 text-[15px] font-semibold">
+        <Monitor aria-hidden className="size-4 text-brand" />
+        {t("web.desktop.phoneTitle")}
+      </p>
+      <p className="mt-1.5 text-[14px] leading-relaxed text-muted-foreground">{t("web.desktop.phoneBody")}</p>
+      <Button type="button" variant="secondary" onClick={() => void send()} className="mt-4 h-11 w-full gap-2 rounded-full text-[15px] sm:w-auto sm:px-5">
+        {copied ? <CircleCheck aria-hidden className="text-ok" /> : <Send aria-hidden />}
+        {copied ? t("web.desktop.phoneCopied") : t("web.desktop.phoneSend")}
+      </Button>
+    </div>
   );
 }
 
@@ -628,30 +661,8 @@ function PillPreview({ voice, on }: { voice: VoiceType; on: boolean }) {
   );
 }
 
-/** One line crediting the photographers on the home page (Pexels and Unsplash photos). */
-function PhotoCredits() {
-  const { lang } = useT();
-  const people = new Map<string, string>();
-  for (const p of Object.values(PHOTOS)) if (!people.has(p.by)) people.set(p.by, p.page);
-  return (
-    <p className="mx-auto max-w-6xl px-5 pb-8 text-[12px] leading-relaxed text-muted-foreground sm:px-8">
-      {pick(COPY.credits, lang)}:{" "}
-      {[...people].map(([by, page], i) => (
-        <span key={by}>
-          {i > 0 && ", "}
-          <a href={page} target="_blank" rel="noreferrer" className="underline-offset-2 hover:text-foreground hover:underline">
-            {by}
-          </a>
-        </span>
-      ))}{" "}
-      (Pexels, Unsplash)
-    </p>
-  );
-}
-
 function Footer() {
   const { t } = useT();
-  const route = useRoute();
   return (
     <footer className="border-t border-border">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-5 py-8 text-[13px] text-muted-foreground sm:px-8">
@@ -662,7 +673,6 @@ function Footer() {
           {t("guide.title")}
         </a>
       </div>
-      {route === "home" && <PhotoCredits />}
     </footer>
   );
 }

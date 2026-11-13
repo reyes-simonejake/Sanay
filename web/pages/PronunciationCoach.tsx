@@ -173,7 +173,7 @@ export function PronunciationCoach() {
               setMode(m);
             }}
             className={cn(
-              "flex min-h-12 items-center justify-center gap-2 rounded-xl px-3 text-[15px] font-medium transition-colors",
+              "flex min-h-12 items-center justify-center gap-1.5 rounded-xl px-2 text-[14px] font-medium whitespace-nowrap transition-colors sm:gap-2 sm:px-3 sm:text-[15px]",
               mode === m ? "bg-card shadow-sm" : "text-muted-foreground hover:text-foreground",
             )}
           >

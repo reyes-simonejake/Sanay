@@ -291,7 +291,6 @@ export const COPY = {
   packsCta: { en: "Test your voice", fil: "Subukan ang boses mo" },
   minutes: { en: "min", fil: "min" },
 
-  credits: { en: "Photos", fil: "Mga larawan" },
 };
 
 /** The communities, in the order the "Who it's for" list shows them. */

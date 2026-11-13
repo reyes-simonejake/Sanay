@@ -169,6 +169,12 @@ export class OrbRenderer {
     this.stop();
   }
 
+  /** Stops drawing and hands the WebGL context back to the browser (the canvas is going away). */
+  release() {
+    this.stop();
+    this.gl.getExtension("WEBGL_lose_context")?.loseContext();
+  }
+
   private draw() {
     const { gl, canvas } = this;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);

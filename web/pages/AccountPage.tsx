@@ -240,8 +240,18 @@ export async function signOut(
 function Sidebar({ user, tab }: { user: User; tab: Tab }) {
   const { t } = useT();
   const { backend, setUser } = useAuth();
+  // Phones: keep the open tab in view in the sideways-scrolling row.
+  const navRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const row = navRef.current;
+    const on = row?.querySelector<HTMLElement>('[aria-current="page"]');
+    if (!row || !on || row.scrollWidth <= row.clientWidth) return;
+    row.scrollTo({ left: on.offsetLeft - row.clientWidth / 2 + on.offsetWidth / 2, behavior: "instant" as ScrollBehavior });
+  }, [tab]);
   return (
-    <aside className="min-w-0 lg:sticky lg:top-24 lg:self-start">
+    // On phones the sidebar dissolves into the page grid, so its tab row can stay pinned at the top
+    // while you scroll; on computers it is the sticky sidebar.
+    <aside className="min-w-0 max-lg:contents lg:sticky lg:top-24 lg:self-start">
       {/* Identity, once. */}
       <div className="flex items-center gap-3">
         <Avatar user={user} className="size-11 text-[14px]" />
@@ -253,8 +263,9 @@ function Sidebar({ user, tab }: { user: User; tab: Tab }) {
         </div>
       </div>
       <nav
+        ref={navRef}
         aria-label={t("account.title")}
-        className="-mx-5 mt-6 overflow-x-auto px-5 lg:mx-0 lg:overflow-visible lg:px-0"
+        className="scroll-fade sticky top-0 z-20 -mx-5 -mt-6 overflow-x-auto border-b border-border bg-background/85 px-5 py-2 backdrop-blur-md sm:-mx-8 sm:px-8 lg:static lg:mx-0 lg:mt-6 lg:overflow-visible lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none"
       >
         <ul className="flex gap-1 lg:flex-col">
           {GROUPS.flatMap((g) => [
@@ -275,7 +286,7 @@ function Sidebar({ user, tab }: { user: User; tab: Tab }) {
                     href={`#/account/${k}`}
                     aria-current={on ? "page" : undefined}
                     className={cn(
-                      "flex h-9 items-center gap-2.5 rounded-lg px-3 text-[14px] whitespace-nowrap transition-colors",
+                      "flex h-10 items-center gap-2.5 rounded-lg px-3 text-[14px] whitespace-nowrap transition-colors lg:h-9",
                       on
                         ? "bg-foreground/[0.07] font-medium text-foreground"
                         : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground",

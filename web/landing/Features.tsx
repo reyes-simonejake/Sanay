@@ -18,7 +18,7 @@ export function Features({ voice, onTry }: { voice: VoiceType; onTry: () => void
   const f = COPY.features;
   return (
     <section id="features" aria-labelledby="features-title" className="land-section land-glow scroll-mt-4">
-      <div className="mx-auto max-w-6xl px-5 py-28 sm:px-8">
+      <div className="mx-auto max-w-6xl px-5 py-20 sm:px-8 lg:py-28">
         <div className="mx-auto max-w-[44rem] text-center">
           <h2 id="features-title" className="font-display text-[clamp(2rem,3.8vw,3.1rem)] leading-[1.05] font-semibold tracking-[-0.03em] text-balance">
             {pick(f.title, lang)}
@@ -26,7 +26,7 @@ export function Features({ voice, onTry }: { voice: VoiceType; onTry: () => void
           <p className="mt-4 text-[17px] text-muted-foreground">{pick(f.body, lang)}</p>
         </div>
 
-        <div className="mt-20 space-y-28">
+        <div className="mt-14 space-y-20 lg:mt-20 lg:space-y-28">
           {f.rows.map((row, i) => {
             const Icon = ROW_ICON[row.id as keyof typeof ROW_ICON];
             const flip = i % 2 === 1;
@@ -65,7 +65,7 @@ function RealCallFlow({ voice }: { voice: VoiceType }) {
   const { lang } = useT();
   const fl = COPY.features.flow;
   return (
-    <div className="flex flex-col items-center gap-8">
+    <div className="flex w-full min-w-0 flex-col items-center gap-8">
       <div className="flow" style={{ ["--light" as string]: `var(--voice-${voice})` }}>
         <span className="flow-node">
           <Mic className="size-4" /> {pick(fl.mic, lang)}

@@ -1,4 +1,6 @@
 // A small "back to top" button that appears once you have scrolled past the first screen.
+// On phones it shows only while you scroll back up (or at the very bottom), so it never sits on
+// top of what you are reading.
 import { useEffect, useState } from "react";
 import { ArrowUp } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -8,7 +10,18 @@ export function BackToTop() {
   const lang = useLang();
   const [shown, setShown] = useState(false);
   useEffect(() => {
-    const onScroll = () => setShown(window.scrollY > window.innerHeight * 0.9);
+    const wide = window.matchMedia("(min-width: 1024px)");
+    let lastY = window.scrollY;
+    const onScroll = () => {
+      const y = window.scrollY;
+      const past = y > window.innerHeight * 0.9;
+      if (wide.matches) setShown(past);
+      else {
+        const atEnd = window.innerHeight + y >= document.documentElement.scrollHeight - 80;
+        if (Math.abs(y - lastY) > 8 || atEnd) setShown(past && (y < lastY || atEnd));
+      }
+      if (Math.abs(y - lastY) > 8) lastY = y;
+    };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
