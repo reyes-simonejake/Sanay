@@ -176,6 +176,15 @@
     transform 0.15s ease,
     opacity 0.2s ease;
 }
+/* Narrow phones: both hero buttons stay on one row, so the scroll hint keeps its place under them. */
+@media (max-width: 379.98px) {
+  .journey-btn {
+    height: 48px;
+    padding: 0 16px;
+    gap: 6px;
+    font-size: 14px;
+  }
+}
 .journey-btn:hover {
   transform: translateY(-1px);
   opacity: 0.92;
@@ -330,6 +339,24 @@
   font-size: 12px;
   font-weight: 500;
   color: var(--muted-foreground);
+}
+/* Phones and tablets: in the flow under the buttons. Computers: in the sky (above). */
+.journey-hint-inline {
+  position: static;
+  transform: none;
+  margin: 28px auto 0;
+  white-space: nowrap;
+  text-shadow: 0 1px 10px rgb(0 0 0 / 0.85);
+}
+@media (min-width: 1024px) {
+  .journey-hint-inline {
+    display: none;
+  }
+}
+@media (max-width: 1023.98px) {
+  .journey-hint-sky {
+    display: none;
+  }
 }
 .journey-hint::after {
   content: "";

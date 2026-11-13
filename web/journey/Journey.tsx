@@ -152,9 +152,12 @@ export function Journey({ lab, level, onStart }: { lab: VoiceLab; level: number;
                 {t(`web.verdict.${lab.verdict}` as TKey)}
               </p>
             )}
+            {/* Phones and tablets: the hint follows the buttons, so it never lands on the text. */}
+            <p className="journey-hint journey-hint-inline">{pick(COPY.scrollHint, lang)}</p>
           </div>
 
-          <p className="journey-hint">{pick(COPY.scrollHint, lang)}</p>
+          {/* Computers: the hint waits in the clear sky above the skyline. */}
+          <p className="journey-hint journey-hint-sky">{pick(COPY.scrollHint, lang)}</p>
         </div>
 
         {/* 5 and 6: the photo ring, and sunrise. */}
